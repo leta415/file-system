@@ -1,6 +1,5 @@
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Map;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,6 +39,8 @@ public class CommandParser {
                       break;
          case "mkdir" : mkdir(splitInput[1]);
                         break;
+         case "ls" : ls();
+                     break;
          default   : bs.write("Invalid command.".getBytes());
                      bs.flush();
                      break;
@@ -81,31 +82,17 @@ public class CommandParser {
             case "." : break;
             case ".." : currentDirectory = currentDirectory.parentDir;
                         break;
-            default : if (!findItem(dir)) {
+            default : Item child;
+                      if ((child=((Directory)currentDirectory).findChild(dir)) == null) {
                          bs.write("Invalid file path.".getBytes());
                          bs.flush();
                          return;
+                      } else {
+                         currentDirectory = child;
                       };
          }
       }
       
-   }
-   
-   /**
-    * Helper method for cd(). Tries to find a direct child.
-    * @param dirName The child to find in the directory.
-    * @return True if an Item called dirName was found, false if it wasn't found.
-    */
-   private static boolean findItem(String dirName) {
-      Item item = ((Directory)currentDirectory).fileMap.get(dirName);
-      
-      if (!item.isDir) {
-         return false;
-      }
-      
-      currentDirectory = item;
-      
-      return true;
    }
    
    /**
@@ -141,13 +128,12 @@ public class CommandParser {
       //TODO validate not empty and not null
       arg.trim();
       String[] newDirectories = arg.split("\\s+");
-      Map<String, Item> children = ((Directory)currentDirectory).fileMap;
       for (int i = 0; i < newDirectories.length; i++) {
          Directory d = mkdirFromPath(newDirectories[i]);
          if (d == null) {
             bs.write(("Invalid path. Could not make directory '" + newDirectories[i] + "'.").getBytes());
          } else {
-            children.put(d.name, d);
+            ((Directory)currentDirectory).addItem(d);
          }
       }
       
@@ -157,7 +143,7 @@ public class CommandParser {
    /**
     * Helper method for mkdir(). Makes directories from given paths to the new requested directory.
     * @param path Path to the new requested directory to be made.
-    * @return
+    * @return The Directory to change to.
     */
    private static Directory mkdirFromPath (String path) {
       //TODO validate not empty and not null
@@ -165,13 +151,22 @@ public class CommandParser {
       Item currentItem = currentDirectory;
       int i;
       for (i = 0; i < pathSplit.length - 1; i++) {
-         Item childDir = ((Directory)currentItem).fileMap.get(pathSplit[i]);
-         if (!(childDir instanceof Directory)) {
+         Item childDir = ((Directory)currentItem).findChild(pathSplit[i]);
+         if (childDir==null || !(childDir instanceof Directory)) {
             return null;
          }
          currentItem = childDir;
       }
       return new Directory(pathSplit[i], currentItem);
+   }
+   
+   /**
+    * Implementation for 'list' command. Prints items in the current directory in alphabetical order.
+    * @throws IOException
+    */
+   private static void ls () throws IOException {
+      bs.write(currentDirectory.toString().getBytes());
+      bs.flush();
    }
    
 	public static void main (String[] args) throws IOException {
@@ -182,11 +177,11 @@ public class CommandParser {
       currentDirectory = rootDirectory;
       
       String input;
-      while ((input=br.readLine()) != null) {
+      while ( !((input=br.readLine()) == null  ||  input.equalsIgnoreCase("exit")) ) {
          parseInput(input);
       }
       
-      
+
       br.close();
       bs.flush();
       bs.close();

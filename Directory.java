@@ -5,13 +5,17 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class Directory extends Item {
-   Map<String, Item> fileMap = new HashMap<String, Item>();
-   Set<String> fileNamesABCOrder = new TreeSet<String>();
+   private Map<String, Item> fileMap = new HashMap<String, Item>();
+   private Set<String> fileNamesABCOrder = new TreeSet<String>();
    
    public Directory(String name, Item parentDir) {
       this.name = name;
       this.parentDir = parentDir;
       this.isDir = true;
+   }
+   
+   public Item findChild(String childToFind) {
+      return fileMap.get(childToFind);
    }
    
    public void addItem(Item item) {
@@ -26,7 +30,7 @@ public class Directory extends Item {
       String str = "";
       Iterator<String> iter = fileNamesABCOrder.iterator();
       while (iter.hasNext()) {
-         str += iter.next() + (iter.hasNext() ? "\n" : "");
+         str += iter.next() + "\n";
       }
       return str;
    }
