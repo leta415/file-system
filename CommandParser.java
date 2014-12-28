@@ -1,5 +1,6 @@
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Map;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -91,6 +92,23 @@ public class CommandParser {
    }
    
    /**
+    * Helper method for cd(). Tries to find a direct child.
+    * @param dirName The child to find in the directory.
+    * @return True if an Item called dirName was found, false if it wasn't found.
+    */
+   private static boolean findItem(String dirName) {
+      Item item = ((Directory)currentDirectory).fileMap.get(dirName);
+      
+      if (!item.isDir) {
+         return false;
+      }
+      
+      currentDirectory = item;
+      
+      return true;
+   }
+   
+   /**
     * Implementation of 'print working directory' command. 
     * @throws IOException
     */
@@ -103,7 +121,7 @@ public class CommandParser {
       }
       
       while (!pathDirs.isEmpty()) {
-         System.out.print(pathDirs.pop());
+         bs.write(pathDirs.pop().getBytes());
          if (!pathDirs.isEmpty()) {
             bs.write("/".getBytes());
          } else {
@@ -114,21 +132,46 @@ public class CommandParser {
       bs.flush();
    }
    
-   private static void mkdir (String arg) {
+   /**
+    * Implementation of 'make directory' command.
+    * @param arg Command argument(s)
+    * @throws IOException
+    */
+   private static void mkdir (String arg) throws IOException {
+      //TODO validate not empty and not null
       arg.trim();
-      
-   }
-   
-   private static boolean findItem(String dirName) {
-      Item item = ((Directory)currentDirectory).fileMap.get(dirName);
-      
-      if (!item.isDir) {
-         return false;
+      String[] newDirectories = arg.split("\\s+");
+      Map<String, Item> children = ((Directory)currentDirectory).fileMap;
+      for (int i = 0; i < newDirectories.length; i++) {
+         Directory d = mkdirFromPath(newDirectories[i]);
+         if (d == null) {
+            bs.write(("Invalid path. Could not make directory '" + newDirectories[i] + "'.").getBytes());
+         } else {
+            children.put(d.name, d);
+         }
       }
       
-      currentDirectory = item;
-      
-      return true;
+      bs.flush();
+   }
+   
+   /**
+    * Helper method for mkdir(). Makes directories from given paths to the new requested directory.
+    * @param path Path to the new requested directory to be made.
+    * @return
+    */
+   private static Directory mkdirFromPath (String path) {
+      //TODO validate not empty and not null
+      String[] pathSplit = path.split("/");
+      Item currentItem = currentDirectory;
+      int i;
+      for (i = 0; i < pathSplit.length - 1; i++) {
+         Item childDir = ((Directory)currentItem).fileMap.get(pathSplit[i]);
+         if (!(childDir instanceof Directory)) {
+            return null;
+         }
+         currentItem = childDir;
+      }
+      return new Directory(pathSplit[i], currentItem);
    }
    
 	public static void main (String[] args) throws IOException {
