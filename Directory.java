@@ -4,41 +4,71 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * Class that extends Item. This class represents a directory type of item in a file system.
+ * @author Leta
+ */
 public class Directory extends Item {
+   /* Map of all Items in this Directory */
    private Map<String, Item> fileMap = new HashMap<String, Item>();
-   private Set<String> fileNamesABCOrder = new TreeSet<String>();
-   
+
+   /* Storage of all Item names in this directory in alphabetical order */
+   private Set<String> itemNamesABCOrder = new TreeSet<String>();
+
+   /**
+    * Constructor for this class. Must pass in a name and parent directory.
+    * @param name Name of this Directory
+    * @param parentDir Parent directory of this one
+    */
    public Directory(String name, Item parentDir) {
       this.name = name;
       this.parentDir = parentDir;
       this.isDir = true;
    }
-   
+
+   /**
+    * Find a child Item in this Directory.
+    * @param childToFind The name of the Item to find inside this Directory.
+    * @return The reference to the Item found. Null if not found.
+    */
    public Item findChild(String childToFind) {
       return fileMap.get(childToFind);
    }
-   
+
+   /**
+    * Add an Item inside this Directory.
+    * @param item Item to add.
+    */
    public void addItem(Item item) {
       fileMap.put(item.name, item);
-      fileNamesABCOrder.add(item.name);
+      itemNamesABCOrder.add(item.name);
    }
+
+   /**
+    * Remove an Item from this Directory
+    * @param name Finds the Item by name and removes it from where ever stored.
+    */
    public void removeItem(String name) {
       fileMap.remove(name);
-      fileNamesABCOrder.remove(name);
+      itemNamesABCOrder.remove(name);
    }
+
+   /**
+    * Returns an alphabetically ordered list of Item names delimited by new line.
+    */
    public String toString() {
       String str = "";
-      Iterator<String> iter = fileNamesABCOrder.iterator();
+      Iterator<String> iter = itemNamesABCOrder.iterator();
       while (iter.hasNext()) {
          str += iter.next() + "\n";
       }
       return str;
    }
-   
-   public static void main (String[] args) {
+
+   public static void main(String[] args) {
       Directory dir = new Directory("dir", null);
       dir.addItem(new File("file1", dir));
-//      dir.addItem(new File("file2", dir));
+      // dir.addItem(new File("file2", dir));
       System.out.println(dir.toString());
    }
 }
