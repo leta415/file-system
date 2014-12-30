@@ -54,10 +54,11 @@ public class Directory extends Item {
     * @param name Finds the Item by name and removes it from where ever stored.
     */
    public boolean removeItem(String name) {
-      Item i = fileMap.remove(name);
-      if (i == null) {
+      Item i = fileMap.get(name);
+      if (i == null || !((Directory)i).fileMap.isEmpty()) {
          return false;
       }
+      
       itemNamesABCOrder.remove(name);
       return true;
    }

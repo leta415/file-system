@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
- * Class that imitates Unix commands for a file system. ls, pwd, cd, cd .., cd ., cd <path>, cp, mv,
- * rm, mkdir, rmdir, exit
+ * Class that imitates Unix commands for a file system. Commands implemented: ls, pwd, cd, cd .., cd
+ * ., cd <path>, mkdir, rmdir, exit
  * @author Leta
  * 
  */
@@ -17,7 +17,7 @@ public class CommandParser {
    private final static Item rootDirectory = new Directory("home", null);
    private final static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));;
    private final static BufferedOutputStream bs = new BufferedOutputStream(System.out);
-   
+
    private static Item currentDirectory;
 
    /**
@@ -91,8 +91,8 @@ public class CommandParser {
    }
 
    /**
-    * Helper method to parse a path and return appropriate Directory. Precondition: Variable 'path'
-    * is not empty.
+    * Helper method to parse a path and return reference to a ParsedPathInfo instance. Precondition:
+    * Variable 'path' is not empty.
     * @param path Path to parse.
     * @param last True if looking for the last directory in the path. False if looking for second to
     *           last directory, such as for mkdir().
@@ -141,9 +141,7 @@ public class CommandParser {
          }
       }
 
-      if (!last) {
-         path = argSplit[i];
-      }
+      path = argSplit[argSplit.length - 1];
 
       return new ParsedPathInfo(newDirectory, path);
    }
@@ -180,7 +178,6 @@ public class CommandParser {
       arg.trim();
       String[] newDirectoryPaths = arg.split("\\s+");
       for (int i = 0; i < newDirectoryPaths.length; i++) {
-         // Directory d = mkdirFromPath(newDirectoryPaths[i]);
          String newDirectoryPath = newDirectoryPaths[i];
          ParsedPathInfo parsedInfo = parsePath(newDirectoryPath, false,
                "Invalid path. Could not make new directory '" + newDirectoryPath + "'.\n");
@@ -205,16 +202,15 @@ public class CommandParser {
       arg.trim();
       String[] removeDirectories = arg.split("\\s+");
       for (int i = 0; i < removeDirectories.length; i++) {
-         // Directory d = findDirFromPath(removeDirectories[i]);
-         ParsedPathInfo parsedInfo = parsePath(removeDirectories[i], false,
+         ParsedPathInfo parsedInfo = parsePath(removeDirectories[i], true,
                "Invalid path. Could not remove directory '" + removeDirectories[i] + "'.\n");
          if (parsedInfo == null) {
             continue;
          }
-         boolean removed = ((Directory) parsedInfo.directory).removeItem(parsedInfo.fileName);
+         boolean removed = ((Directory) parsedInfo.directory.parentDir)
+               .removeItem(parsedInfo.fileName);
          if (!removed) {
-            bs.write(("Invalid path. Could not find '" + removeDirectories[i] + "' to remove.\n")
-                  .getBytes());
+            bs.write(("Directory not empty: " + removeDirectories[i] + ".\n").getBytes());
          }
       }
    }
