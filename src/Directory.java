@@ -79,11 +79,4 @@ public class Directory extends Item {
       }
       return str;
    }
-
-   public static void main(String[] args) {
-      Directory dir = new Directory("dir", null);
-      dir.addItem(new File("file1", dir));
-      // dir.addItem(new File("file2", dir));
-      System.out.println(dir.toString());
-   }
 }
